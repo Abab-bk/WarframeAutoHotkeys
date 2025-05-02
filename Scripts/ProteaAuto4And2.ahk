@@ -7,14 +7,14 @@ SetKeyDelay 100, 100
 
 ; protea 4 ability duration
 ; @export
-global duration := 9000
+global duration := 9500
 ; @export
 global useDoubleAbility2 := false
 ; @export
-global ability2Duration := 5000
+global ability2Duration := 3200
 
 ; @export
-global castInterval := 1000
+global castInterval := 900
 
 ; @export
 global ability4 := "4"
