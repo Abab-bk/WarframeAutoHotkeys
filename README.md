@@ -10,8 +10,6 @@ WarframeAutoHotkeys
 
 - Slam
 
-- 
-
 ## Features
 
 1. AutoHotkey scripts.
@@ -30,4 +28,4 @@ WarframeAutoHotkeys
 
 2. Run WarframeAutoHotkeys.py to launch gui or run .ahk files in Scripts folder directly.
 
-
+3. Press XButton2 (MouseButton4 I think)
