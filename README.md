@@ -2,6 +2,32 @@
 
 WarframeAutoHotkeys
 
-## How to
+## Scripts
 
-Run WarframeAutoHotkeys.py to launch gui or run .ahk files in Scripts folder directly.
+- GaussClap
+
+- Protea Auto 2 And 4
+
+- Slam
+
+- 
+
+## Features
+
+1. AutoHotkey scripts.
+
+2. Gui
+
+## Requirements
+
+1. AutoHotkey2
+
+2. Python
+
+## Get Started
+
+1. Modify Config.json
+
+2. Run WarframeAutoHotkeys.py to launch gui or run .ahk files in Scripts folder directly.
+
+
