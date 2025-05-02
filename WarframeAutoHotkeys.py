@@ -5,6 +5,19 @@ import os
 import glob
 import subprocess
 import json
+import re
+
+def center_window(window):
+    window.update_idletasks()
+    width = window.winfo_width()
+    height = window.winfo_height()
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+
+    window.geometry(f"{width}x{height}+{x}+{y}")
 
 class AHKRunner:
     def __init__(self, master, ahk_folder, ahk_executable):
@@ -90,6 +103,132 @@ class AHKRunner:
         for widget in self.inner_frame.winfo_children():
             widget.destroy()
 
+        for script in self.scripts:
+            script_frame = ttk.Frame(self.inner_frame)
+            script_frame.pack(fill=tk.X, padx=20, pady=5)
+
+            rb = ttk.Radiobutton(
+                script_frame,
+                text=os.path.basename(script),
+                variable=self.radio_var,
+                value=script,
+                command=lambda s=script: self.run_script(s),
+                style='TRadiobutton'
+            )
+            rb.pack(side=tk.LEFT)
+
+            config_btn = ttk.Button(
+                script_frame,
+                text="Settings",
+                command=lambda s=script: self.open_settings(s)
+            )
+            config_btn.pack(side=tk.LEFT, padx=5)
+
+        self.radio_var.set('')
+
+    def parse_exported_variables(self, script_path):
+        variables = {}
+        try:
+            with open(script_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+                if line == '; @export':
+                    if i + 1 < len(lines):
+                        var_line = lines[i + 1].strip()
+                        match = re.match(r'global\s+(\w+)\s*:=\s*(.+?)(;.*)?$', var_line)
+                        if match:
+                            var_name = match.group(1)
+                            var_value = match.group(2).strip()
+                            variables[var_name] = var_value
+                            i += 1  # Skip variable line
+                i += 1
+        except Exception as e:
+            self.show_error(f"Parse error: {str(e)}")
+        return variables
+
+    def open_settings(self, script_path):
+        variables = self.parse_exported_variables(script_path)
+        if not variables:
+            messagebox.showinfo("Tips", "No exported variables found in the script.")
+            return
+
+        settings_win = tk.Toplevel(self.master)
+        settings_win.title(f"Settings - {os.path.basename(script_path)}")
+        
+        entries = {}
+        main_frame = ttk.Frame(settings_win)
+        main_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        for idx, (var_name, var_value) in enumerate(variables.items()):
+            frame = ttk.Frame(main_frame)
+            frame.pack(fill=tk.X, pady=2)
+            
+            ttk.Label(frame, text=var_name).pack(side=tk.LEFT)
+            entry = ttk.Entry(frame)
+            entry.insert(0, var_value)
+            entry.pack(side=tk.RIGHT)
+            entries[var_name] = entry
+
+        btn_frame = ttk.Frame(main_frame)
+        btn_frame.pack(pady=10)
+        
+        ttk.Button(
+            btn_frame,
+            text="Save",
+            command=lambda: self.save_settings(script_path, entries, settings_win)
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            btn_frame,
+            text="Cancel",
+            command=settings_win.destroy
+        ).pack(side=tk.LEFT)
+
+        center_window(settings_win)
+
+    # TODO: need to refactor
+    def save_settings(self, script_path, entries, window):
+        try:
+            with open(script_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+                if line == '; @export' and (i + 1) < len(lines):
+                    var_line = lines[i + 1].strip()
+                    match = re.match(r'global\s+(\w+)\s*:=\s*(.+?)(;.*)?$', var_line)
+                    
+                    if not match: continue
+
+                    var_name = match.group(1)
+                    if var_name not in entries: continue
+                    
+                    new_value = entries[var_name].get()
+                    comment = match.group(3) or ''
+                    lines[i + 1] = f'global {var_name} := {new_value}{comment}\n'
+                    del entries[var_name]
+                    i += 1
+                i += 1
+
+            with open(script_path, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+
+            messagebox.showinfo("Success", "Configuration saved successfully.")
+            window.destroy()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save configuration: {str(e)}")
+
+        pattern = os.path.join(self.ahk_folder, "*.ahk")
+        self.scripts = glob.glob(pattern)
+        self.scripts.sort()
+
+        for widget in self.inner_frame.winfo_children():
+            widget.destroy()
+
         for idx, script in enumerate(self.scripts):
             rb = ttk.Radiobutton(
                 self.inner_frame,
@@ -163,5 +302,5 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     app = AHKRunner(root, AHK_FOLDER, AHK_EXE)
-    root.geometry("400x300")
+    center_window(root)
     root.mainloop()

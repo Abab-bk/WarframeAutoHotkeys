@@ -6,13 +6,19 @@
 SetKeyDelay 100, 100
 
 ; protea 4 ability duration
+; @export
 global duration := 9000
+; @export
 global useDoubleAbility2 := false
+; @export
 global ability2Duration := 5000
 
+; @export
 global castInterval := 1000
 
+; @export
 global ability4 := "4"
+; @export
 global ability2 := "2"
 
 global _isRunning := false
@@ -30,7 +36,7 @@ XButton2::
         return
     }
 
-    _isRunning := true    
+    _isRunning := true
     Cast()
     SetTimer(OnTimeOut, -duration)
 }
