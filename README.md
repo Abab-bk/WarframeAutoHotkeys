@@ -1,0 +1,2 @@
+# WarframeAutoHotkeys
+WarframeAutoHotkeys
