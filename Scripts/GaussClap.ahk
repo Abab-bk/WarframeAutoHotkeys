@@ -5,23 +5,48 @@
 global castQueue := "ice-ice-fire"
 
 ; @export
+global castQueue2 := "fire-fire-ice"
+
+; @export
 global ability1 := "1"
 ; @export
 global ability3 := "3"
 ; @export
-global castDelay := 100
+global castDelay := 200
 ; @export
-global checkKeyStateDelay := 100
+global checkKeyStateDelay := 200
+
+global _enabledAbility1 := true
+global _castQueue2 := false
 
 global _array := StrSplit(castQueue, "-")
+global _array2 := StrSplit(castQueue2, "-")
+
+~o:: {
+    global _enabledAbility1
+    _enabledAbility1 := !_enabledAbility1
+    ToolTip("EnabledAbility1: {" _enabledAbility1 "} ", 50, 50)
+    SetTimer(ToolTip, 1000)
+}
+
+~l:: {
+    global _castQueue2
+    _castQueue2 := !_castQueue2
+    ToolTip("Enabled CastQueue2: {" _castQueue2 "} ", 50, 50)
+    SetTimer(ToolTip, 1000)
+}
 
 ~XButton2:: {
-    global castQueue, ability1, ability3, castDelay, _array, checkKeyStateDelay
+    global ability1, ability3, castDelay, _array, _array2, checkKeyStateDelay, _enabledAbility1
 
-    SendEvent "{ " ability1 " down}"
+    _castArray := _enabledAbility1 ? _array : _array2
+
+    if (_enabledAbility1) {
+        SendEvent "{ " ability1 " down}"        
+    }
 
     while (GetKeyState("XButton2") == 1) {
-        for index, element in _array {
+        for index, element in _castArray {
             if !GetKeyState("XButton2")
                 break 2
 
@@ -38,5 +63,7 @@ global _array := StrSplit(castQueue, "-")
         Sleep checkKeyStateDelay
     }
 
-    SendEvent ability1
+    if (_enabledAbility1) {
+        SendEvent ability1
+    }
 }
